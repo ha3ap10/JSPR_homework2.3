@@ -7,6 +7,7 @@ import ru.netology.repository.PostRepository;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 @Service
 public class PostService {
@@ -18,11 +19,16 @@ public class PostService {
     }
 
     public List<Post> all() {
-        return repository.all();
+        return repository.all()
+                .stream()
+                .filter(post -> !post.isRemoved())
+                .collect(Collectors.toList());
     }
 
     public Post getById(long id) {
-        return repository.getById(id).orElseThrow(NotFoundException::new);
+        return repository.getById(id)
+                .filter(post -> !post.isRemoved())
+                .orElseThrow(NotFoundException::new);
     }
 
     public Post save(Post post) {
@@ -37,7 +43,7 @@ public class PostService {
     public void removeById(long id) {
         final var postOpt = repository.getById(id);
         if (id != 0 && postOpt.isPresent()) {
-            repository.removeById(id);
+            getById(id).setRemoved(true);
         }
     }
 }
